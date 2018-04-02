@@ -1,0 +1,26 @@
+---
+- name: Ensure that /opt/{{project_name}} exists
+  file:
+    state: directory
+    path: /opt/{{project_name}}
+  become: true
+
+- name: Ensure that {{tmp_dir}} exists
+  file:
+    state: directory
+    path: "{{tmp_dir}}"
+  become: true
+
+- name: Ensure epel-release
+  yum:
+    name: "epel-release"
+    state: present
+
+- name: Ensure OS package dependencies
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items: "{{os_package_dependencies}}"
+
+- import_tasks: tasks/ssh.yml
+- import_tasks: tasks/pip.yml

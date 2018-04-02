@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+export project_name="p13dp"
+
+# Absolute path to this file's parent dir
+export lib_path=$(dirname "${BASH_SOURCE[0]}")
+
+# Get the absolute path to the project dir and save it in $project_path
+cd ${lib_path}/..
+export project_path=$(pwd)
+cd - > /dev/null
+
+export script_path=$project_path/script
+export configurator_path=${project_path}/configurator
+
+# baker/ related env vars
+export tmp_path=${project_path}/tmp
+export packer_tmp_path=${tmp_path}/packer
+export packer_output_path=${packer_tmp_path}/output
+export packer_http_path=${packer_tmp_path}/http
+export baker_path=${project_path}/baker
+export os_distribution=${os:-'centos'}
+export os_boot_files_dir=${baker_path}/boot-files/$os_distribution
+source $os_boot_files_dir/variables
+
+# Used by Packer directly
+export PACKER_CACHE_DIR=${packer_tmp_path}/cache
+
+# Used by both the baker and scripts under script/
+export provider=${provider:-'virtualbox'}
+
+# Aliases to some color goodies
+red="\033[0;31m"
+yellow="\033[0;33m"
+green="\033[0;32m"
+normal="\033[m"

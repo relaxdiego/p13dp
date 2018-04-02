@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+export os_version="7.4.1708"
+export os_iso_checksum_type="sha256"
+export os_iso_checksum="ec7500d4b006702af6af023b1f8f1b890b6c7ee54400bb98cef968b883cd6546"
+export os_iso_url="http://mirrors.sonic.net/centos/${os_version}/isos/x86_64/CentOS-7-x86_64-DVD-1708.iso"
+export os_iso_filename="${os_distribution}-${os_version}.iso"
+export os_iso_cache_path=$tmp_path/os-images/$os_distribution/$os_iso_filename
+
+export root_password="$(uuidgen)"
+export ssh_username="admin"
+export ssh_password="admin"
+
+export ansible_python_interpreter=/usr/bin/python2.7
+
+export vars_file=$tmp_path/packer/http/$os_distribution/empty.yml
+export vault_file=$tmp_path/packer/http/$os_distribution/empty.yml

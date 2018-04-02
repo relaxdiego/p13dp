@@ -1,0 +1,28 @@
+---
+opt_project_dir: /opt/{{project_name}}
+downloads_dir: "{{opt_project_dir}}/downloads"
+bin_dir: "{{opt_project_dir}}/bin"
+
+# Location on the master and workers where temporary/rendered files are stored.
+tmp_dir: "{{ansible_env.HOME}}/.p13dp"
+
+# Locking hyperkube version to v1.8.7 since v1.9.2 has a regression in kubelet
+# where it fails to delete the pod if its associated manifest is removed from
+# /etc/kubernetes/manifests.
+hyperkube_image: gcr.io/google-containers/hyperkube:v1.10.0
+
+# Refer to https://github.com/kubernetes/kubernetes/blob/master/test/e2e_node/system/docker_validator_test.go
+# to get a list of validated Docker versions.
+docker_package_name: docker-ce-17.06.2.ce-1.el7.centos
+
+nginx_version: 1.12.0
+
+os_package_dependencies:
+  - bash-completion
+  - git
+  - jq
+  - ntp
+  - tcpdump
+  - unzip
+  - wget
+  - yum-utils

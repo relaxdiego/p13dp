@@ -1,0 +1,16 @@
+---
+#
+# Use with any other virtualization provider
+#
+
+- hosts: all
+  gather_facts: true
+  become: true
+
+  vars:
+    project_name: "{{ lookup('env', 'project_name') }}"
+    release_id: "{{ lookup('env', 'release_id') }}"
+
+  roles:
+    - prebake/node
+    - prebake/tmux

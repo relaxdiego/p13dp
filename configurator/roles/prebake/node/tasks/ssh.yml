@@ -1,0 +1,20 @@
+---
+# This role adds a service that re-generates the OpenSSH host keys. This is
+# necessary because the Packer template deletes these files just before the
+# machine image is finalized. The reason Packer deletes the host keys is to
+# ensure that all instances have unique fingerprints and, thereby, avoid any
+# possible MITM attacks.
+- name: Install service
+  copy:
+    src: etc/systemd/system/{{item}}.service
+    dest: /etc/systemd/system/{{item}}.service
+  become: true
+  register: install_ssh
+  with_items:
+  - init-openssh
+  - ssh
+
+- name: Enable init-openssh.service
+  command: systemctl enable init-openssh
+  become: true
+  when: install_ssh | changed

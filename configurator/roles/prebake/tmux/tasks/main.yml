@@ -1,0 +1,11 @@
+---
+- name: Ensure tmux
+  yum:
+    name: tmux
+    state: present
+
+- name: Ensure ~/.tmux.conf
+  copy:
+    src: tmux.conf
+    dest: "{{ansible_env.HOME}}/.tmux.conf"
+    force: true

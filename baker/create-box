@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -e
+
+# Get the project directory path
+cd "$(dirname "${BASH_SOURCE[0]}")/.." && \
+    project_path=$(pwd) && \
+    cd -
+
+# Load common variables
+export lib_path=$project_path/lib
+source $lib_path/common
+
+export playbook_path=${configurator_path}/prebake.yml
+export virtualbox_playbook_path=${configurator_path}/prebake-virtualbox.yml
+export headless=${headless:-'true'}
+
+echo -e "${green}Creating the Vagrant box...${normal}"
+
+# Always start fresh by deleting any previously built images
+rm -rfv $packer_output_path/${project_name}-${os_distribution}-${provider}
+
+# Cache the ISO that will be used by Packer
+if [[ ! -e $os_iso_cache_path ]]; then
+    mkdir -p $(dirname $os_iso_cache_path)
+    wget $os_iso_url -O $os_iso_cache_path
+fi
+
+# Call the pre-install hook if present for this $os_distribution
+if [ -f $os_boot_files_dir/pre-install ]; then
+    echo -e "${green}Calling OS pre-install hook${normal}"
+    $os_boot_files_dir/pre-install
+fi
+
+# Prepare the files needed by the boot_command portion of the Packer builder
+# to the directory that Packer's built-in HTTP server will serve from.
+mkdir -p $packer_http_path/$os_distribution
+cp -av $os_boot_files_dir/. $packer_http_path/$os_distribution/ |
+    sed "s|${project_path}/||g"
+
+export build_output_path=$packer_output_path/${project_name}-${os_distribution}-${provider}
+
+time packer build -force -only=${project_name}-${os_distribution}-${provider} $baker_path/template.json
+
+echo -e "${green}Vagrant box created at ${build_output_path}.box${normal}"
+exit 0

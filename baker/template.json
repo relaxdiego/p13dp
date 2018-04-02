@@ -1,0 +1,159 @@
+{
+    "variables": {
+        "project_name": "{{env `project_name`}}",
+
+        "os_distribution": "{{env `os_distribution`}}",
+        "os_iso_cache_path": "{{env `os_iso_cache_path`}}",
+        "os_iso_channel": "{{env `os_iso_channel`}}",
+        "os_iso_checksum": "{{env `os_iso_checksum`}}",
+        "os_iso_checksum_type": "{{env `os_iso_checksum_type`}}",
+        "os_iso_filename": "{{env `os_iso_filename`}}",
+        "os_version": "{{env `os_version`}}",
+        "vars_file": "{{env `vars_file`}}",
+        "vault_file": "{{env `vault_file`}}",
+
+        "communicator": "ssh",
+        "ssh_port": "22",
+        "ssh_username": "{{env `ssh_username`}}",
+        "ssh_password": "{{env `ssh_password`}}",
+
+        "script_directory": "{{env `script_path`}}",
+        "output_directory": "{{env `build_output_path`}}",
+        "http_directory": "{{env `packer_http_path`}}",
+
+        "ansible_python_interpreter": "{{env `ansible_python_interpreter`}}",
+
+        "vm_disk_mb": "65536",
+        "vm_ram_mb": "2048",
+        "vm_cpu_count": "1",
+
+        "headless": "{{env `headless`}}",
+
+        "playbook_path": "{{env `playbook_path`}}",
+        "virtualbox_playbook_path": "{{env `virtualbox_playbook_path`}}",
+
+        "tmp_path": "{{env `packer_tmp_path`}}"
+    },
+    "builders": [
+        {
+            "name": "{{user `project_name`}}-centos-virtualbox",
+            "type": "virtualbox-iso",
+            "vm_name": "{{user `project_name`}}-centos-virtualbox",
+            "headless": "{{user `headless`}}",
+
+            "iso_checksum": "{{user `os_iso_checksum`}}",
+            "iso_checksum_type": "{{user `os_iso_checksum_type`}}",
+            "iso_url": "file://{{user `os_iso_cache_path`}}",
+
+            "http_directory": "{{user `http_directory`}}",
+
+            "boot_wait": "15s",
+            "boot_command": [
+                "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort}}/{{user `os_distribution`}}/kickstart.cfg<enter>"
+            ],
+
+            "communicator": "{{user `communicator`}}",
+            "ssh_port": "{{user `ssh_port`}}",
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_password": "{{user `ssh_password`}}",
+            "ssh_timeout": "15m",
+
+            "guest_os_type": "Linux_64",
+            "hard_drive_interface": "sata",
+            "disk_size": "{{user `vm_disk_mb`}}",
+            "vboxmanage": [
+              [ "modifyvm", "{{.Name}}", "--memory", "{{user `vm_ram_mb`}}" ],
+              [ "modifyvm", "{{.Name}}", "--cpus", "{{user `vm_cpu_count`}}" ],
+              [ "modifyvm", "{{.Name}}", "--paravirtprovider", "default" ],
+              [ "modifyvm", "{{.Name}}", "--nictype1", "virtio" ]
+            ],
+            "guest_additions_mode": "disable",
+
+            "shutdown_command": "sudo -S shutdown -P now",
+            "format": "ova",
+            "output_directory": "{{user `output_directory`}}"
+        },
+        {
+            "name": "{{user `project_name`}}-ubuntu-virtualbox",
+            "type": "virtualbox-iso",
+            "vm_name": "{{user `project_name`}}-ubuntu-virtualbox",
+            "headless": "{{user `headless`}}",
+
+            "iso_checksum": "{{user `os_iso_checksum`}}",
+            "iso_checksum_type": "{{user `os_iso_checksum_type`}}",
+            "iso_url": "file://{{user `os_iso_cache_path`}}",
+
+            "http_directory": "{{user `http_directory`}}",
+
+            "boot_wait": "15s",
+            "boot_command": [
+                "<enter><wait>",
+                "<f6><esc>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+                "<bs><bs><bs>",
+                "/install/vmlinuz ",
+                "initrd=/install/initrd.gz ",
+                "net.ifnames=0 ",
+                "auto-install/enable=true ",
+                "debconf/priority=critical ",
+                "preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/{{user `os_distribution`}}/ubuntu-16.04/preseed.cfg ",
+                "<enter>"
+            ],
+
+            "communicator": "{{user `communicator`}}",
+            "ssh_port": "{{user `ssh_port`}}",
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_password": "{{user `ssh_password`}}",
+            "ssh_timeout": "15m",
+
+            "guest_os_type": "Linux_64",
+            "hard_drive_interface": "sata",
+            "disk_size": "{{user `vm_disk_mb`}}",
+            "vboxmanage": [
+              [ "modifyvm", "{{.Name}}", "--memory", "{{user `vm_ram_mb`}}" ],
+              [ "modifyvm", "{{.Name}}", "--cpus", "{{user `vm_cpu_count`}}" ]
+            ],
+            "guest_additions_mode": "disable",
+
+            "shutdown_command": "sudo -S shutdown -P now",
+            "format": "ova",
+            "output_directory": "{{user `output_directory`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "ansible",
+            "user": "{{user `ssh_username`}}",
+            "playbook_file": "{{user `virtualbox_playbook_path`}}",
+            "extra_arguments": [
+                "--connection=ssh",
+                "--extra-vars", "ansible_python_interpreter='{{user `ansible_python_interpreter`}}' ansible_ssh_pass={{user `ssh_password`}} tmp_path={{user `tmp_path`}} vars_file='{{user `vars_file`}}' vault_file='{{user `vault_file`}}'"
+            ],
+            "ansible_env_vars": [
+                "ANSIBLE_SCP_IF_SSH=True"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline":[
+                "sudo rm -rf /home/*/.ssh",
+                "sudo rm -f /etc/ssh/ssh_host_*"
+            ]
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "compression_level": 1,
+            "output": "{{user `output_directory`}}/{{.BuildName}}.box",
+            "keep_input_artifact": true
+        }
+    ]
+}

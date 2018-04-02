@@ -1,0 +1,19 @@
+---
+- name: Check if pip is installed
+  shell: "{{ansible_python_interpreter}} -m pip --version"
+  register: pip_installed
+  ignore_errors: True
+  changed_when: false
+
+- name: Get get-pip.py
+  get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+    force: true
+  register: get_pip
+  when: pip_installed | failed
+
+- name: Install pip
+  command: "{{ansible_python_interpreter}} /tmp/get-pip.py"
+  become: true
+  when: pip_installed | failed

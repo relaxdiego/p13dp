@@ -1,0 +1,13 @@
+---
+#
+# Use when the underlying virtualization provider is Virtualbox
+#
+
+- import_playbook: prebake.yml
+
+- hosts: all
+  gather_facts: false
+  become: true
+
+  roles:
+    - prebake/guest-additions

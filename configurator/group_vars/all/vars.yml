@@ -13,7 +13,7 @@ hyperkube_image: gcr.io/google-containers/hyperkube:v1.10.0
 
 # Refer to https://github.com/kubernetes/kubernetes/blob/master/test/e2e_node/system/docker_validator_test.go
 # to get a list of validated Docker versions.
-docker_package_name: docker-ce-17.06.2.ce-1.el7.centos
+docker_package_name: docker-ce-17.03.2.ce-1.el7.centos
 
 nginx_version: 1.12.0
 

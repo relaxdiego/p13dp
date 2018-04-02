@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "${BASH_SOURCE[0]}")/../.." && \
+    project_path=$(pwd) && \
+    cd - > /dev/null
+
+source $project_path/lib/common
+
+
+check_config_dir(){
+    local config_abspath=$1
+
+    #
+    # Check if the config dir exists
+    #
+    if [ -d "$config_abspath" ]; then
+        echo -e "${green}Config dir found: ${normal}$config_abspath"
+    elif [ -e "$config_abspath" ]; then
+        echo -e "${red}ERROR:${normal} $config_abspath is NOT a directory"
+        exit 1
+    else
+        echo -e "Config dir $cluster_config_abspath not found. " \
+                "Run \`script/new $cluster_config_abspath\` to initialize."
+        exit 1
+    fi
+
+    #
+    # Check if the vars.yml file exists
+    #
+    if [ ! -f "${config_abspath}/vars.yml" ]; then
+        echo -e "${red}ERROR:${normal} ${config_abspath}/vars.yml not found!"
+        exit 1
+    fi
+
+    #
+    # Check if <UUID_HERE> has been replaced
+    #
+    if grep --quiet 'cluster_id: <UUID-HERE>' ${config_abspath}/vars.yml; then
+        echo -e "${red}ERROR:${normal} Please replace <UUID-HERE> in ${config_abspath}/vars.yml with a unique ID"
+        echo -e "       You might want to use $(uuidgen)"
+        exit 1
+    fi
+
+    return 0
+}
+
+get_dotdir(){
+    echo $HOME/.p13dp
+    return 0
+}
+
+get_bitbucket_username(){
+    local vars_file=$1
+    grep "bitbucket_username:" $vars_file | sed "s/bitbucket_username: *//g"
+    return 0
+}
+
+get_config_abspath(){
+    local config_path=$1
+
+    if [ -d "$config_path" ]; then
+        cd "$config_path" && config_path=$(pwd) && cd - > /dev/null
+    fi
+
+    echo "$config_path"
+    return 0
+}
+
+get_cluster_id(){
+    local vars_file=$1
+
+    grep "cluster_id:" $vars_file | sed "s/cluster_id: *//g"
+    return 0
+}
+
+get_vault_pass_file(){
+    local cluster_id=$1
+    local atm_subdir=$(get_dotdir)
+    echo $atm_subdir/$cluster_id/vault-password
+    return 0
+}
+
+get_vault_file(){
+    local config_path=$1
+    echo "${config_path}/vault.yml"
+    return 0
+}
+
+run_hook() {
+    local hook_name=$1
+    local config_path=$2
+    local hook_path="$config_path/hooks/$hook_name"
+
+    # Return succesfully if the hook is not defined
+    if [ ! -f "$hook_path" ]; then
+        return 0
+    fi
+
+    if [ ! -x "$hook_path" ]; then
+        echo -e "${red}ERROR:${normal} $hook_path is not executable."
+        exit 1
+    fi
+
+    cd $config_path
+    echo -e "${green}Running $hook_name hook:${normal} $hook_path"
+    "$hook_path"
+    cd - > /dev/null
+}

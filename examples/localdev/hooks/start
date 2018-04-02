@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -e
+
+# Make sure we're in the examples/localdev directory
+cd $(dirname "${BASH_SOURCE[0]}")/..
+
+source ../../lib/common
+source hooks/lib/common
+
+#
+# Optionally add kubelet_name to the user's /etc/hosts
+#
+
+# Prepare static entry for /etc/hosts
+static_entry=$(cat << EOF
+$etc_hosts_marker_begin
+
+$kubelet_ip  $kubelet_name
+
+$etc_hosts_marker_end
+EOF
+)
+
+if grep "$kubelet_ip  $kubelet_name" /etc/hosts 1>/dev/null; then
+    # Static entry in /etc/hosts already exists. Don't ask to re-add it
+    prompt_for_static_entry_append="no"
+else
+    # Static entry in /etc/hosts does not exist. Let's prompt to add it
+    prompt_for_static_entry_append="yes"
+fi
+
+if [ "$prompt_for_static_entry_append" == "yes" ]; then
+    echo ""
+    echo -e "Do you want me to add ${green}${kubelet_name}${normal} to your /etc/hosts?"
+    echo "This will let you browse to your local cluster via http://${kubelet_name}"
+    echo -e "Type 'yes' if so (you might be asked for your password next): \c"
+    read add_fqdn
+else
+    add_fqdn="no"
+fi
+
+if [ "$add_fqdn" == "yes" ]; then
+    tmp_hosts=/tmp/hosts
+    rm -rf $tmp_hosts && touch $tmp_hosts
+
+    # Check if /etc/hosts ends with a newline character.
+    # If not, let's prepend it to $tmp_hosts before proceeding.
+    c=`tail -c 1 /etc/hosts`
+    if [ "$c" != "" ]; then
+        add_new_line=$(echo);
+    else
+        add_new_line=""
+    fi
+
+    echo "Adding the following to /etc/hosts:"
+    echo "$static_entry"
+
+    sudo bash -c "sed -i \"/$etc_hosts_marker_begin/,/$etc_hosts_marker_end/ d\" /etc/hosts; echo \"${add_new_line}${static_entry}\" >> /etc/hosts"
+    echo "Static entry added to /etc/hosts"
+fi
+
+make create

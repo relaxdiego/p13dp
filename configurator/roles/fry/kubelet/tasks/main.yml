@@ -1,0 +1,20 @@
+---
+- name: Ensure /etc/kubernetes/manifests
+  file:
+    state: directory
+    path: /etc/kubernetes/manifests
+
+- name: Copy Kubelet systemd unit file
+  template:
+    src: kubelet.service
+    dest: /lib/systemd/system/
+    mode: 0644
+  register: render_kubelet_service_unit_file
+
+- name: Start Kubelet
+  systemd:
+    state: restarted
+    enabled: true
+    name: kubelet
+    daemon_reload: yes
+  when: render_kubelet_service_unit_file | changed

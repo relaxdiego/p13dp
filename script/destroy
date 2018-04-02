@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -e
+
+# There is only one parameter to this script and that is the relative path
+# to the config directory. All other arguments should be in the form of an
+# entry in the configuration inside that dir.
+
+# Check if the relative path is defined
+if [ -z "$1" ]; then
+    echo "Please run using \`$0 /path/to/cluster/config\`"
+    exit 1
+fi
+
+config_relpath=${1%/}
+
+# Get this script's parent dir (the script/ dir)
+script_path=$(dirname "${BASH_SOURCE[0]}")
+
+source $script_path/lib/common > /dev/null
+
+# Function calls below are defined in script/lib/common
+config_abspath=$(get_config_abspath $config_relpath)
+
+check_config_dir $config_abspath
+
+# ================
+
+run_hook "destroy" $config_abspath

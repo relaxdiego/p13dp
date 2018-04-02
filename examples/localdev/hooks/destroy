@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Make sure we're in the examples/localdev directory
+cd $(dirname "${BASH_SOURCE[0]}")/..
+
+source ../../lib/common
+source hooks/lib/common
+
+if [ -z "$force" ]; then
+    echo -e "${red}WARNING:${normal} This will destroy the dev cluster. Type 'yes' to continue: \c"
+    read confirmed
+else
+    confirmed="yes"
+fi
+
+if [[ "$confirmed" == "yes" ]]; then
+    make destroy
+    exit 0
+else
+    echo "User aborted"
+    exit 1
+fi

@@ -1,0 +1,8 @@
+# Normally, these files should NOT be ignored and should be checked
+# into the repository. However, since this cluster config directory
+# is for local development purposes where every developer will be
+# playing around with their own configuration, we must ignore them
+# in this case. Real cluster config dirs should check these into the
+# repo though.
+vars.yml
+vault.yml

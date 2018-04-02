@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -e
+
+# There is only one parameter to this script and that is the relative path
+# to the config directory. All other arguments should be in the form of an
+# entry in the configuration inside that dir.
+
+# Check if the relative path is defined
+if [ -z "$1" ]; then
+    echo "Please run using \`$0 /path/to/cluster/config\`"
+    exit 1
+fi
+
+config_relpath=${1%/}
+
+# shift arguments to the left
+shift
+
+# Get this script's parent dir (the script/ dir)
+script_path=$(dirname "${BASH_SOURCE[0]}")
+
+source $script_path/lib/common
+
+# Function calls below are defined in script/lib/common
+config_abspath=$(get_config_abspath $config_relpath)
+
+check_config_dir $config_abspath
+
+# ================
+
+cluster_id=$(get_cluster_id $config_abspath/vars.yml)
+vault_pass_file=$(get_vault_pass_file $cluster_id)
+vault_file=$(get_vault_file $config_abspath)
+
+if [ ! -e "$vault_pass_file" ]; then
+    echo -e "${red}ERROR:${normal} Vault password file couldn't be found at ${vault_pass_file}"
+    echo "Initialize it with: script/init-vault $config_abspath"
+fi
+
+if [ ! -e "$vault_file" ]; then
+    echo -e "${red}ERROR:${normal} Vault file couldn't be found at ${vault_file}"
+    echo "Initialize it with: script/init-vault $config_abspath"
+fi
+
+ansible-vault edit --vault-password-file=${vault_pass_file} ${vault_file}

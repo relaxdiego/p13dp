@@ -1,0 +1,35 @@
+[Unit]
+Description=Standalone Kubelet
+After=docker.service
+Requires=docker.service
+
+
+[Service]
+User=root
+ExecStartPre=-/bin/rm -f /var/run/kubelet.uuid
+ExecStart=/usr/bin/docker run \
+    --volume=/:/rootfs:ro \
+    --volume=/sys:/sys:ro \
+    --volume=/root:/root:ro \
+    --volume=/var/lib/docker/:/var/lib/docker:rw \
+    --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
+    --volume=/etc/kubernetes/manifests/:/etc/kubernetes/manifests:rw \
+    --volume=/var/run:/var/run:rw \
+    --net=host \
+    --pid=host \
+    --privileged=true \
+    --cidfile=/var/run/kubelet.uuid \
+    {{hyperkube_image}} kubelet \
+        --containerized \
+        --hostname-override=127.0.0.1 \
+        --address=0.0.0.0 \
+        --pod-manifest-path=/etc/kubernetes/manifests \
+        --allow-privileged=true \
+        --v=2 \
+        --fail-swap-on=false
+Restart=always
+RestartSec=10s
+
+
+[Install]
+WantedBy=multi-user.target

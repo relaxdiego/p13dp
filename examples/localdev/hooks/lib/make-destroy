@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+# Make sure we're in the examples/localdev directory
+cd $(dirname "${BASH_SOURCE[0]}")/../..
+
+source ../../lib/common
+source hooks/lib/common
+
+# Destroy each VM
+for i in `vagrant status | grep "running (virtualbox)" | awk '{ print $1 }'`; do
+    echo "Destroying $i"
+    vagrant destroy --force $i
+done
+
+# Remove the custom entries in ~/.ssh/config
+echo "Removing ~/.ssh/config custom entries"
+sed -i "/$ssh_config_marker_begin/,/$ssh_config_marker_end/ d" ~/.ssh/config
+
+echo -e "${green}Cluster destroyed${normal}"

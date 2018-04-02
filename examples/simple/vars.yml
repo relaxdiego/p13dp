@@ -1,0 +1,33 @@
+---
+#
+# Make sure to initialize the vault for this cluster config
+# by running `script/init-vault examples/simple`. This command
+# will generate an encrypted vault.yml file where you can store
+# sensitive information and then reference as needed below.
+#
+# NOTE: Values below such as "{{vault_artifactory_password}}" means
+# that the value will be taken from an entry named vault_artifactory_password
+# which you should have defined in the vault. Edit your vault file via
+# `script/edit-vault examples/simple`
+#
+
+# A unique identifier for this cluster. Generate one via uuidgen
+# This information is used to create a subdirectory under ~/.p13dp
+# which is a path local to the user and machine running p13dp
+# This folder is where the vault password gets stored.
+cluster_id: <UUID-HERE>
+
+# The username that p13dp will use to SSH to each host.
+#
+# PREREQUISITES:
+#   1. The user must have pubkey-based SSH access to the host
+#   2. The user must have passwordless sudo access inside the host
+ansible_user: admin
+
+# Docker registries that each node in the cluster must have access to.
+# Publicly available docker registries need not be included here unless
+# you need to download from a private repo in that registry.
+docker_registries:
+  - address: IPADDRESS:PORT
+    username: "{{vault_artifactory_username}}"
+    password: "{{vault_artifactory_password}}"

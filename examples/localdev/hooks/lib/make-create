@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -e
+
+# Make sure we're in the examples/localdev directory
+cd $(dirname "${BASH_SOURCE[0]}")/../..
+
+source ../../lib/common
+source hooks/lib/common
+
+vagrant up
+
+#
+# Add hosts to current user's ~/.ssh/config
+#
+ssh_config=~/.ssh/config
+touch $ssh_config
+
+vagrant_config=~/.ssh/vagrant-ssh-config-tmp
+rm -rf $vagrant_config && touch $vagrant_config
+
+c=`tail -c 1 $ssh_config`
+if [ "$c" != "" ]; then echo >> $vagrant_config; fi
+
+echo "$ssh_config_marker_begin" >> $vagrant_config
+echo >> $vagrant_config
+
+hosts=(${kubelet_name})
+
+for host in ${hosts[*]}; do
+    if ssh -q ${ssh_username}@$host exit; then
+        echo "SSH connection to $host already works. Skipping."
+    else
+        vagrant ssh-config $host >> $vagrant_config
+    fi
+done
+
+echo "$ssh_config_marker_end" >> $vagrant_config
+
+cat $vagrant_config >> $ssh_config

@@ -1,0 +1,52 @@
+---
+- name: Check if old versions have been removed
+  stat:
+    path: "{{tmp_dir}}/old-docker-versions-removed"
+  register: old_docker_versions_removed
+
+- name: Remove old docker versions
+  yum:
+    name: "{{item}}"
+    state: absent
+  with_items:
+    - docker
+    - docker-common
+    - docker-selinux
+    - docker-engine
+  when: not old_docker_versions_removed.stat.exists
+
+- name: Set old_docker_versions_removed_flag
+  file:
+    path: "{{tmp_dir}}/old-docker-versions-removed"
+    state: touch
+  when: not old_docker_versions_removed.stat.exists
+
+- name: Install {{docker_package_name}}
+  yum:
+    name: "{{docker_package_name}}"
+    state: present
+
+- name: Ensure Docker Engine is running
+  service:
+    name: docker
+    state: started
+
+- name: Enable net.bridge.bridge-nf-call-iptables
+  sysctl:
+    name: "{{item}}"
+    value: 1
+    state: present
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: Install docker-py
+  pip:
+    name: "docker[tls]"
+
+- name: Login to docker registries
+  docker_login:
+    registry: "{{item.address}}"
+    username: "{{item.username}}"
+    password: "{{item.password}}"
+  with_items: "{{docker_registries}}"

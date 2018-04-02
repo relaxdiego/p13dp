@@ -1,0 +1,20 @@
+---
+#
+# Use when pre-baking can't be done in the target platform
+#
+
+- import_playbook: prebake.yml
+
+- hosts: all
+  become: true
+
+  vars:
+    project_name: "{{ lookup('env', 'project_name') }}"
+
+  vars_files:
+    - "{{vault_file}}"
+    - "{{vars_file}}"
+
+  roles:
+  - fry/docker
+  - fry/kubelet

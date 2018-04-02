@@ -1,0 +1,3 @@
+This directory contain example cluster config directories. The one named
+localdev is the one you can use for local development as you work on
+atm-jenkins.

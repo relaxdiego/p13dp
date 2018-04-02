@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+export kubelet_name="kubemaster"
+export kubelet_ip="192.168.123.85"
+
+export box_name=${project_name}-${os_distribution}-${provider}
+export box_path=${packer_output_path}/${box_name}/${box_name}.box
+
+export ssh_config_marker_begin="# ----BEGIN--managed-by-${project_name}-example-localdev-hook---"
+export ssh_config_marker_end="# ----END--managed-by-${project_name}-example-localdev-hook---"
+
+export etc_hosts_marker_begin="# ----BEGIN--managed-by-${project_name}-example-localdev-hook---"
+export etc_hosts_marker_end="# ----END--managed-by-${project_name}-example-localdev-hook---"
